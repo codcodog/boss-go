@@ -107,13 +107,19 @@ func sqliteClose() {
 	sqlite.Close()
 }
 
-func cacheArea(area string) {
+func setAreaCache(area string) {
 	redisClient.SAdd(areaKey, area)
 }
 
-func isCachedArea() bool {
+func getAreaCache() []string {
 	area, err := redisClient.SMembers(areaKey).Result()
 	checkErr(err)
+
+	return area
+}
+
+func isCachedArea() bool {
+	area := getAreaCache()
 
 	return len(area) != 0
 }

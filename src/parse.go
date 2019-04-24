@@ -11,7 +11,7 @@ func parseArea(resp *http.Response) {
 	doc.Find("dl.condition-district").Find("a").Each(func(i int, selector *goquery.Selection) {
 		// 跳过第一个 -> 不限
 		if i != 0 {
-			cacheArea(selector.Text())
+			setAreaCache(selector.Text())
 		}
 	})
 }
