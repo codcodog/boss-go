@@ -2,14 +2,16 @@ package boss
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
-var options *Options
+var opts *Options
 
 type Options struct {
 	city  string
@@ -27,7 +29,7 @@ func init() {
 	job := os.Getenv("BOSS_JOB")
 	sleep, _ := strconv.Atoi(os.Getenv("BOSS_SLEEP"))
 
-	options = &Options{
+	opts = &Options{
 		city,
 		job,
 		sleep,
@@ -36,7 +38,11 @@ func init() {
 
 // 获取区域，深圳 -> 南山区
 func getArea() {
-	fmt.Println(options.city)
+	urlTpl := "https://www.zhipin.com/job_detail/?query=%s&scity=%s&source=2"
+	url := fmt.Sprintf(urlTpl, opts.job, opts.city)
+	contents := request(url)
+
+	parseArea(contents)
 }
 
 // 获取商圈，南山区 -> 科技园
@@ -49,6 +55,19 @@ func getJobList() {
 
 func getJD() {
 
+}
+
+func request(url string) []byte {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Add("User-Agent", fakeBrowser())
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+
+	contents, err := ioutil.ReadAll(resp.Body)
+	checkErr(err)
+
+	return contents
 }
 
 func fakeBrowser() string {

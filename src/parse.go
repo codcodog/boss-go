@@ -1,7 +1,15 @@
 package boss
 
-func parseArea() {
+import (
+	"fmt"
 
+	"github.com/PuerkitoBio/goquery"
+)
+
+func parseArea(contents []byte) {
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+	fmt.Println(doc)
 }
 
 func parseBusiness() {

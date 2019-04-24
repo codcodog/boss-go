@@ -9,3 +9,9 @@ func Run() {
 	getJobList()
 	getJD()
 }
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

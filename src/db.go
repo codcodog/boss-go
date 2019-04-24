@@ -12,9 +12,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var redisClient *redis.Client
-var sqlite *sql.DB
-
 type redisOptions struct {
 	addr     string
 	port     int
@@ -22,15 +19,24 @@ type redisOptions struct {
 	db       int
 }
 
+var redisClient *redis.Client
+var sqlite *sql.DB
+
 func init() {
-	redisInit()
-	dbInit()
+	var err error
+	redisClient, err = redisInit()
+	checkErr(err)
+
+	sqlite, err = dbInit()
+	checkErr(err)
+
+	tableInit()
 }
 
-func redisInit() {
+func redisInit() (*redis.Client, error) {
 	redisOptions := loadRedisConfig()
 
-	redisClient = redis.NewClient(&redis.Options{
+	redisClient := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", redisOptions.addr, redisOptions.port),
 		Password: fmt.Sprintf("%s", redisOptions.password),
 		DB:       redisOptions.db,
@@ -38,8 +44,10 @@ func redisInit() {
 
 	_, err := redisClient.Ping().Result()
 	if err != nil {
-		log.Fatalf("redis ping error: %v \n", err)
+		return nil, err
 	}
+
+	return redisClient, nil
 }
 
 func loadRedisConfig() *redisOptions {
@@ -63,15 +71,13 @@ func loadRedisConfig() *redisOptions {
 	return redisOptions
 }
 
-func dbInit() {
-	var err error
-
-	sqlite, err = sql.Open("sqlite3", "./boss.db")
+func dbInit() (*sql.DB, error) {
+	sqlite, err := sql.Open("sqlite3", "./boss.db")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	tableInit()
+	return sqlite, nil
 }
 
 func tableInit() {
