@@ -19,6 +19,11 @@ type redisOptions struct {
 	db       int
 }
 
+const (
+	areaKey     = "BOSS:AREA"
+	businessKey = "BOSS:BUSINESS"
+)
+
 var redisClient *redis.Client
 var sqlite *sql.DB
 
@@ -102,12 +107,23 @@ func sqliteClose() {
 	sqlite.Close()
 }
 
-func cacheArea() {
+func cacheArea(area string) {
+	redisClient.SAdd(areaKey, area)
+}
 
+func isCachedArea() bool {
+	area, err := redisClient.SMembers(areaKey).Result()
+	checkErr(err)
+
+	return len(area) != 0
 }
 
 func cacheBusiness() {
 
+}
+
+func isCachedBusiness() bool {
+	return true
 }
 
 func saveJD() {

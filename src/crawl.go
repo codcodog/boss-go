@@ -2,9 +2,9 @@ package boss
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 
@@ -39,10 +39,11 @@ func init() {
 // 获取区域，深圳 -> 南山区
 func getArea() {
 	urlTpl := "https://www.zhipin.com/job_detail/?query=%s&scity=%s&source=2"
-	url := fmt.Sprintf(urlTpl, opts.job, opts.city)
-	contents := request(url)
+	areaUrl := fmt.Sprintf(urlTpl, opts.job, opts.city)
+	req := getUrl(areaUrl)
+	resp := request(req)
 
-	parseArea(contents)
+	parseArea(resp)
 }
 
 // 获取商圈，南山区 -> 科技园
@@ -57,17 +58,22 @@ func getJD() {
 
 }
 
-func request(url string) []byte {
+func getUrl(req string) string {
+	u, _ := url.Parse(req)
+	query := u.Query()
+	u.RawQuery = query.Encode()
+
+	return u.String()
+}
+
+func request(url string) *http.Response {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Add("User-Agent", fakeBrowser())
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
-
-	contents, err := ioutil.ReadAll(resp.Body)
 	checkErr(err)
 
-	return contents
+	return resp
 }
 
 func fakeBrowser() string {

@@ -4,8 +4,12 @@ func Run() {
 	defer sqliteClose()
 	defer redisClose()
 
-	getArea()
-	getBusiness()
+	if !isCachedArea() {
+		getArea()
+	}
+	if !isCachedBusiness() {
+		getBusiness()
+	}
 	getJobList()
 	getJD()
 }
