@@ -113,6 +113,8 @@ func consumeTask() {
 		if isBlocked(resp) {
 			restoreTask(jobListUrl)
 			record := setBlockRecord()
+
+			log.Println("Blocked by website, sleep...")
 			time.Sleep(time.Duration(record) * 5 * time.Minute)
 			continue
 		}

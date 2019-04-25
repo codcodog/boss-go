@@ -88,7 +88,9 @@ func hasJobs(doc *goquery.Document) bool {
 }
 
 func isBlocked(resp *http.Response) bool {
-	return false
+	doc := parseDoc(resp)
+
+	return doc.HasClass("div.error-content")
 }
 
 func parseDoc(resp *http.Response) *goquery.Document {
