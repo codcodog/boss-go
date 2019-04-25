@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -14,10 +15,11 @@ import (
 var opts *Options
 
 type Options struct {
-	city     string
-	cityCode int
-	job      string
-	sleep    int
+	city      string
+	cityCode  int
+	job       string
+	sleep     int
+	totalPage int
 }
 
 func init() {
@@ -30,12 +32,14 @@ func init() {
 	cityCode, _ := strconv.Atoi(os.Getenv("BOSS_CITY_CODE"))
 	job := os.Getenv("BOSS_JOB")
 	sleep, _ := strconv.Atoi(os.Getenv("BOSS_SLEEP"))
+	totalPage, _ := strconv.Atoi(os.Getenv("BOSS_TOTAL_PAGE"))
 
 	opts = &Options{
 		city,
 		cityCode,
 		job,
 		sleep,
+		totalPage,
 	}
 }
 
@@ -76,11 +80,47 @@ func getBusinessByArea(area string) {
 }
 
 func getJobList() {
-
+	if !isCreatedTaskQueue() {
+		createTaskQueue()
+	}
+	consumeTask()
 }
 
-func getJD() {
+func createTaskQueue() {
+	areas := getAreaCache()
+	for _, area := range areas {
+		businesses := getBusinessCache(area)
+		for _, business := range businesses {
+			cacheJobListUrl(area, business)
+		}
+	}
+}
 
+func cacheJobListUrl(area, business string) {
+	for page := 1; page <= opts.totalPage; page++ {
+		urlTpl := "https://www.zhipin.com/c%d/a_%s-b_%s-h_%s/?query=%s&page=%d"
+		jobListUrl := fmt.Sprintf(urlTpl, opts.cityCode, business, area, opts.city, opts.job, page)
+		encodeUrl := getEncodeUrl(jobListUrl)
+		setTask(encodeUrl)
+	}
+}
+
+func consumeTask() {
+	for !isEmptyTaskQueue() {
+		jobListUrl := getTask()
+		resp := request(jobListUrl)
+
+		if isBlocked(resp) {
+			restoreTask(jobListUrl)
+			record := setBlockRecord()
+			time.Sleep(time.Duration(record) * 5 * time.Minute)
+			continue
+		}
+
+		parseJobList(resp)
+		log.Printf("剩余任务数：%d", getTaskLen())
+		time.Sleep(time.Duration(opts.sleep) * time.Second)
+	}
 }
 
 func getEncodeUrl(req string) string {

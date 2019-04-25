@@ -7,7 +7,6 @@ func Run() {
 	getArea()
 	getBusiness()
 	getJobList()
-	getJD()
 }
 
 func checkErr(err error) {

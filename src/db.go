@@ -22,6 +22,8 @@ type redisOptions struct {
 const (
 	areaKey        = "BOSS:AREA"
 	businessKeyTpl = "BOSS:BUSINESS:%s"
+	taskKey        = "BOSS:TASK"
+	blockKey       = "BOSS:BLOCK"
 )
 
 var redisClient *redis.Client
@@ -91,7 +93,7 @@ func tableInit() {
 				id integer primary key not null,
 				area varchar(25) not null,
 				business varchar(25) not null,
-				salary varchar(25) not null,
+				salary int not null,
 				age varchar(25) not null,
 				type varchar(25) not null
     );
@@ -135,6 +137,43 @@ func getBusinessKey(area string) string {
 	return fmt.Sprintf(businessKeyTpl, area)
 }
 
+func setTask(url string) {
+	redisClient.LPush(taskKey, url)
+}
+
+func getTask() string {
+	url, err := redisClient.RPop(taskKey).Result()
+	checkErr(err)
+
+	return url
+}
+
+func isCreatedTaskQueue() bool {
+	return isKeyExists(taskKey)
+}
+
+func isEmptyTaskQueue() bool {
+	return getTaskLen() == 0
+}
+
+func getTaskLen() int64 {
+	len, err := redisClient.LLen(taskKey).Result()
+	checkErr(err)
+
+	return len
+}
+
+func setBlockRecord() int64 {
+	record, err := redisClient.Incr(blockKey).Result()
+	checkErr(err)
+
+	return record
+}
+
+func restoreTask(url string) {
+	redisClient.RPush(taskKey, url)
+}
+
 func getSmembers(key string) []string {
 	members, err := redisClient.SMembers(key).Result()
 	checkErr(err)
@@ -149,5 +188,8 @@ func isKeyExists(key string) bool {
 	return exists != 0
 }
 
-func saveJD() {
+func saveJD(area string, business string, salary int, experience string, industry string) {
+	sqlTpl := "insert into boss (area, business, salary, age, type) values (%s, %s, %d, %s, %s)"
+	sql := fmt.Sprintf(sqlTpl, area, business, salary, experience, industry)
+	sqlite.Exec(sql)
 }
