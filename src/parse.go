@@ -16,16 +16,19 @@ func parseArea(resp *http.Response) {
 	})
 }
 
-func parseBusiness() {
-
+func parseBusiness(area string, resp *http.Response) {
+	doc := parseDoc(resp)
+	doc.Find("dl.condition-area").Find("a").Each(func(i int, selector *goquery.Selection) {
+		if i != 0 {
+			setBusinessCache(area, selector.Text())
+		}
+	})
 }
 
-func parseJobList() {
-
+func parseJobList(resp *http.Response) {
 }
 
-func parseJD() {
-
+func parseJD(resp *http.Response) {
 }
 
 func parseDoc(resp *http.Response) *goquery.Document {

@@ -20,8 +20,8 @@ type redisOptions struct {
 }
 
 const (
-	areaKey     = "BOSS:AREA"
-	businessKey = "BOSS:BUSINESS"
+	areaKey        = "BOSS:AREA"
+	businessKeyTpl = "BOSS:BUSINESS:%s"
 )
 
 var redisClient *redis.Client
@@ -112,24 +112,41 @@ func setAreaCache(area string) {
 }
 
 func getAreaCache() []string {
-	area, err := redisClient.SMembers(areaKey).Result()
-	checkErr(err)
-
-	return area
+	return getSmembers(areaKey)
 }
 
 func isCachedArea() bool {
-	area := getAreaCache()
-
-	return len(area) != 0
+	return isKeyExists(areaKey)
 }
 
-func cacheBusiness() {
-
+func setBusinessCache(area, business string) {
+	redisClient.SAdd(getBusinessKey(area), business)
 }
 
-func isCachedBusiness() bool {
-	return true
+func getBusinessCache(area string) []string {
+	return getSmembers(getBusinessKey(area))
+}
+
+func isCachedBusiness(area string) bool {
+	return isKeyExists(getBusinessKey(area))
+}
+
+func getBusinessKey(area string) string {
+	return fmt.Sprintf(businessKeyTpl, area)
+}
+
+func getSmembers(key string) []string {
+	members, err := redisClient.SMembers(key).Result()
+	checkErr(err)
+
+	return members
+}
+
+func isKeyExists(key string) bool {
+	exists, err := redisClient.Exists(key).Result()
+	checkErr(err)
+
+	return exists != 0
 }
 
 func saveJD() {

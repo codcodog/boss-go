@@ -14,9 +14,10 @@ import (
 var opts *Options
 
 type Options struct {
-	city  string
-	job   string
-	sleep int
+	city     string
+	cityCode int
+	job      string
+	sleep    int
 }
 
 func init() {
@@ -26,11 +27,13 @@ func init() {
 	}
 
 	city := os.Getenv("BOSS_CITY")
+	cityCode, _ := strconv.Atoi(os.Getenv("BOSS_CITY_CODE"))
 	job := os.Getenv("BOSS_JOB")
 	sleep, _ := strconv.Atoi(os.Getenv("BOSS_SLEEP"))
 
 	opts = &Options{
 		city,
+		cityCode,
 		job,
 		sleep,
 	}
@@ -38,16 +41,38 @@ func init() {
 
 // 获取区域，深圳 -> 南山区
 func getArea() {
+	if isCachedArea() {
+		return
+	}
+	crawlArea()
+}
+
+func crawlArea() {
 	urlTpl := "https://www.zhipin.com/job_detail/?query=%s&scity=%s&source=2"
 	areaUrl := fmt.Sprintf(urlTpl, opts.job, opts.city)
-	req := getUrl(areaUrl)
-	resp := request(req)
+	encodeUrl := getEncodeUrl(areaUrl)
+	resp := request(encodeUrl)
 
 	parseArea(resp)
 }
 
 // 获取商圈，南山区 -> 科技园
 func getBusiness() {
+	areas := getAreaCache()
+	for _, area := range areas {
+		if !isCachedBusiness(area) {
+			getBusinessByArea(area)
+		}
+	}
+}
+
+func getBusinessByArea(area string) {
+	urlTpl := "https://www.zhipin.com/c%d/b_%s-h_%s/?query=%s&ka="
+	businessUrl := fmt.Sprintf(urlTpl, opts.cityCode, area, opts.city, opts.job)
+	encodeUrl := getEncodeUrl(businessUrl)
+	resp := request(encodeUrl)
+
+	parseBusiness(area, resp)
 }
 
 func getJobList() {
@@ -58,7 +83,7 @@ func getJD() {
 
 }
 
-func getUrl(req string) string {
+func getEncodeUrl(req string) string {
 	u, _ := url.Parse(req)
 	query := u.Query()
 	u.RawQuery = query.Encode()
