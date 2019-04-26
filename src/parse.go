@@ -10,8 +10,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func parseArea(resp *http.Response) {
-	doc := parseDoc(resp)
+func parseArea(doc *goquery.Document) {
 	doc.Find("dl.condition-district").Find("a").Each(func(i int, selector *goquery.Selection) {
 		// 跳过第一个 -> 不限
 		if i != 0 {
@@ -20,8 +19,7 @@ func parseArea(resp *http.Response) {
 	})
 }
 
-func parseBusiness(area string, resp *http.Response) {
-	doc := parseDoc(resp)
+func parseBusiness(area string, doc *goquery.Document) {
 	doc.Find("dl.condition-area").Find("a").Each(func(i int, selector *goquery.Selection) {
 		if i != 0 {
 			setBusinessCache(area, selector.Text())
@@ -29,14 +27,14 @@ func parseBusiness(area string, resp *http.Response) {
 	})
 }
 
-func parseJobList(resp *http.Response) {
-	doc := parseDoc(resp)
+func parseJobList(doc *goquery.Document) {
+	area, business := parseLocation(doc)
+
 	if !hasJobs(doc) {
-		log.Println("no jobs.")
+		log.Println(area, business, "no jobs.")
 		return
 	}
 
-	area, business := parseLocation(doc)
 	doc.Find("div.company-list").Siblings().Find("ul").Find("li").Each(func(i int, selector *goquery.Selection) {
 		salary := parseSalary(selector)
 		experience := parseExperience(selector)
@@ -89,15 +87,13 @@ func hasJobs(doc *goquery.Document) bool {
 	return doc.HasClass("div.company-list")
 }
 
-func isBlocked(resp *http.Response) bool {
-	doc := parseDoc(resp)
-
+func isBlocked(doc *goquery.Document) bool {
 	return doc.HasClass("div.error-content")
 }
 
-func parseDoc(resp *http.Response) *goquery.Document {
+func getDoc(resp *http.Response) *goquery.Document {
 	defer resp.Body.Close()
-	doc, err := goquery.NewDocumentFromResponse(resp)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	checkErr(err)
 
 	return doc

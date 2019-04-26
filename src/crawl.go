@@ -56,8 +56,9 @@ func crawlArea() {
 	areaUrl := fmt.Sprintf(urlTpl, opts.job, opts.city)
 	encodeUrl := getEncodeUrl(areaUrl)
 	resp := request(encodeUrl)
+	doc := getDoc(resp)
 
-	parseArea(resp)
+	parseArea(doc)
 }
 
 // 获取商圈，南山区 -> 科技园
@@ -75,8 +76,9 @@ func getBusinessByArea(area string) {
 	businessUrl := fmt.Sprintf(urlTpl, opts.cityCode, area, opts.city, opts.job)
 	encodeUrl := getEncodeUrl(businessUrl)
 	resp := request(encodeUrl)
+	doc := getDoc(resp)
 
-	parseBusiness(area, resp)
+	parseBusiness(area, doc)
 }
 
 func getJobList() {
@@ -109,8 +111,9 @@ func consumeTask() {
 	for !isEmptyTaskQueue() {
 		jobListUrl := getTask()
 		resp := request(jobListUrl)
+		doc := getDoc(resp)
 
-		if isBlocked(resp) {
+		if isBlocked(doc) {
 			restoreTask(jobListUrl)
 			record := setBlockRecord()
 
@@ -120,7 +123,7 @@ func consumeTask() {
 		}
 
 		log.Printf("URL: %s \n", jobListUrl)
-		parseJobList(resp)
+		parseJobList(doc)
 		log.Printf("剩余任务数：%d \n\n", getTaskLen())
 		time.Sleep(time.Duration(opts.sleep) * time.Second)
 	}
@@ -135,15 +138,18 @@ func getEncodeUrl(req string) string {
 }
 
 func request(url string) *http.Response {
+	req, err := http.NewRequest("GET", url, nil)
+	checkErr(err)
+
+	req.Header.Add("User-Agent", userAgent())
+
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Add("User-Agent", fakeBrowser())
 	resp, err := client.Do(req)
 	checkErr(err)
 
 	return resp
 }
 
-func fakeBrowser() string {
+func userAgent() string {
 	return "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
 }
