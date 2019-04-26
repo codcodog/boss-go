@@ -1,6 +1,7 @@
 package boss
 
 import (
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -31,6 +32,7 @@ func parseBusiness(area string, resp *http.Response) {
 func parseJobList(resp *http.Response) {
 	doc := parseDoc(resp)
 	if !hasJobs(doc) {
+		log.Println("no jobs.")
 		return
 	}
 
@@ -95,7 +97,7 @@ func isBlocked(resp *http.Response) bool {
 
 func parseDoc(resp *http.Response) *goquery.Document {
 	defer resp.Body.Close()
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := goquery.NewDocumentFromResponse(resp)
 	checkErr(err)
 
 	return doc

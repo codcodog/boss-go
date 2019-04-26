@@ -119,8 +119,9 @@ func consumeTask() {
 			continue
 		}
 
+		log.Printf("URL: %s \n", jobListUrl)
 		parseJobList(resp)
-		log.Printf("剩余任务数：%d", getTaskLen())
+		log.Printf("剩余任务数：%d \n\n", getTaskLen())
 		time.Sleep(time.Duration(opts.sleep) * time.Second)
 	}
 }
