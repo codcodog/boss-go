@@ -34,8 +34,9 @@ func parseJobList(doc *goquery.Document) {
 		log.Println(area, business, "no jobs.")
 		return
 	}
+	log.Println(area, business, "have jobs.")
 
-	doc.Find("div.company-list").Siblings().Find("ul").Find("li").Each(func(i int, selector *goquery.Selection) {
+	doc.Find("div.job-list").Find("div.job-primary").Each(func(i int, selector *goquery.Selection) {
 		salary := parseSalary(selector)
 		experience := parseExperience(selector)
 		industry := parseIndustry(selector)
@@ -68,27 +69,27 @@ func getStartNumberFromString(str string) int {
 }
 
 func parseExperience(selector *goquery.Selection) string {
-	pText := selector.Find("div.info-primary").First().Find("p").First().Text()
+	pHtml, _ := selector.Find("div.info-primary").First().Find("p").First().Html()
 	sep := `<em class="vline"></em>`
-	res := strings.Split(pText, sep)
+	res := strings.Split(pHtml, sep)
 
 	return res[1]
 }
 
 func parseIndustry(selector *goquery.Selection) string {
-	pText := selector.Find("div.company-text").First().Find("p").First().Text()
+	pHtml, _ := selector.Find("div.company-text").First().Find("p").First().Html()
 	sep := `<em class="vline"></em>`
-	res := strings.Split(pText, sep)
+	res := strings.Split(pHtml, sep)
 
 	return res[0]
 }
 
 func hasJobs(doc *goquery.Document) bool {
-	return doc.HasClass("div.company-list")
+	return doc.Find("div.job-list").Find("div").HasClass("job-primary")
 }
 
 func isBlocked(doc *goquery.Document) bool {
-	return doc.HasClass("div.error-content")
+	return doc.Find("div").HasClass("error-content")
 }
 
 func getDoc(resp *http.Response) *goquery.Document {

@@ -189,8 +189,10 @@ func isKeyExists(key string) bool {
 }
 
 func saveJD(area string, business string, salary int, experience string, industry string) {
-	sqlTpl := "insert into boss (area, business, salary, age, type) values (%s, %s, %d, %s, %s)"
-	sql := fmt.Sprintf(sqlTpl, area, business, salary, experience, industry)
+	sqlTpl := "insert into jobs (area, business, salary, age, type) values (?, ?, ?, ?, ?)"
+	stmt, err := sqlite.Prepare(sqlTpl)
+	checkErr(err)
 
-	sqlite.Exec(sql)
+	_, err = stmt.Exec(area, business, salary, experience, industry)
+	checkErr(err)
 }

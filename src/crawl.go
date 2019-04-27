@@ -117,7 +117,7 @@ func consumeTask() {
 			restoreTask(jobListUrl)
 			record := setBlockRecord()
 
-			log.Println("Blocked by website, sleep...")
+			log.Printf("Blocked by website, sleep %d minutes.\n", record*5)
 			time.Sleep(time.Duration(record) * 5 * time.Minute)
 			continue
 		}
