@@ -3,6 +3,7 @@
 ### 使用
 下载 `boss` 执行文件，配置 `.env` 文件，然后执行.
 ```
+$ cp .env.example .env
 $ ./bin/boss
 ```
 > 在 `.env` 文件所在目录执行 `boss` 文件
