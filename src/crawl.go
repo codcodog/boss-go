@@ -52,8 +52,8 @@ func getArea() {
 }
 
 func crawlArea() {
-	urlTpl := "https://www.zhipin.com/job_detail/?query=%s&scity=%s&source=2"
-	areaUrl := fmt.Sprintf(urlTpl, opts.job, opts.city)
+	urlTpl := "https://www.zhipin.com/c%d/?query=%s&ka=sel-city-%d"
+	areaUrl := fmt.Sprintf(urlTpl, opts.cityCode, opts.job, opts.cityCode)
 	encodeUrl := getEncodeUrl(areaUrl)
 	resp := request(encodeUrl)
 	doc := getDoc(resp)
