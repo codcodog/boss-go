@@ -2,7 +2,7 @@ target = "bin/boss"
 
 GOOS = "linux"
 GOARCH = "amd64"
-CGO_ENABLED = 0
+CGO_ENABLED = 1
 
 .PHONY: all
 all: run
