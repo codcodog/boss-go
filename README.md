@@ -11,7 +11,7 @@ $ ./bin/boss
 ### 说明
 `boss` 文件的编译
 ```
-$ CGO_ENABLED=0 GOOS="linux" ARCH="amd64" go build -o bin/boss
+$ CGO_ENABLED=1 GOOS="linux" ARCH="amd64" go build -o bin/boss
 ```
 
 生成的是 `Linux x86_64` 平台的可执行文件，其他平台可根据需要下载源码进行「交叉编译」.
